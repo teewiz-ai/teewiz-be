@@ -1,0 +1,50 @@
+app:
+  aws:
+    region: eu-central-1             # your bucket’s region
+    bucket-name: my-tshirt-designs   # bucket created earlier
+  frontend-origin: http://localhost:3000
+
+
+server:
+  servlet:
+    session:
+      cookie:
+        same-site: none   # allow cross-site
+        secure: true
+
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/tshirtlab
+    username: postgres
+    password: yourpassword
+    driver-class-name: org.postgresql.Driver
+
+    jpa:
+      hibernate:
+        ddl-auto: update
+      properties:
+        hibernate:
+          dialect: org.hibernate.dialect.PostgreSQLDialect
+      show-sql: false
+
+  web:
+    cors:
+      mappings:
+        "[/api/**]":
+          allowed-origins: ${app.frontend-origin}
+          allowed-methods: GET,POST,PUT,DELETE,OPTIONS
+          allowed-headers: "*"
+          allow-credentials: true
+  application:
+    name: tshirt-lab-backend
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: ${GOOGLE_CLIENT_ID}
+            client-secret: ${GOOGLE_CLIENT_SECRET}
+            scope: openid, profile, email   # nothing else needed
+        provider:
+          google:
+            issuer-uri: https://accounts.google.com
