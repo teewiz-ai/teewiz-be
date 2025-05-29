@@ -53,3 +53,8 @@ spring:
             issuer-uri: https://accounts.google.com
   profiles:
     active: ${SPRING_PROFILES_ACTIVE:dev}
+
+logging:
+  level:
+    org.example.tshirtlabbackend: INFO
+    org.springframework.web: WARN

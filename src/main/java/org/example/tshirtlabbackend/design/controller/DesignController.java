@@ -1,6 +1,7 @@
 package org.example.tshirtlabbackend.design.controller;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.example.tshirtlabbackend.aws.S3StorageService;
 import org.example.tshirtlabbackend.design.domain.Design;
 import org.example.tshirtlabbackend.design.domain.DesignDto;
@@ -24,6 +25,7 @@ import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBo
 
 import java.util.List;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/designs")
 @RequiredArgsConstructor
@@ -37,15 +39,22 @@ public class DesignController {
     @PostMapping("/generate")
     public GenerateDesignResponse generate(@RequestBody GenerateDesignRequest req,
                                            OAuth2AuthenticationToken token) {
+        log.info("Generate request received | prompt='{}'", req.getPrompt());
 
         var img = llmService.generateImage(
                 new LLMService.ImageRequest(req.getPrompt()), null);
 
         User user = findUser(token);
+
+        log.debug("Image created | bytes={}", img.imageBytes().length);
+
         Design design = designService.saveDesign(user, img.imageBytes());
 
+        log.info("Design stored | user={}, key={}, url={}",
+                user.getId(), design.getS3Key(), design.getUrl());
+
         return new GenerateDesignResponse(
-                "1",
+                design.getS3Key(),
                 design.getUrl()
         );
     }
