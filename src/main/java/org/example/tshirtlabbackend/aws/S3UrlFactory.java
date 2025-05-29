@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class S3UrlFactory {
 
-    @Value("${app.aws.bucket-name}")
+    @Value("${app.aws.bucket}")
     private String bucketName;
 
     @Value("${app.aws.region}")

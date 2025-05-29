@@ -2,7 +2,7 @@ version: "3.8"
 
 services:
   db:
-    image: postgres:16
+    image: postgres
     container_name: db
     restart: unless-stopped
     environment:
@@ -11,6 +11,8 @@ services:
       POSTGRES_PASSWORD: yourpassword
     volumes:
       - pgdata:/var/lib/postgresql/data
+    ports:
+      - "5434:5432"
 
   backend:
     build:
@@ -25,9 +27,9 @@ services:
     ports:
       - "8080:8080"
     env_file:
-      - .env
+      - env.properties
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/tshirtlab
+      SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5434/tshirtlab
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: yourpassword
       SERVER_FORWARD_HEADERS_STRATEGY: native

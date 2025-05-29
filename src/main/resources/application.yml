@@ -15,20 +15,20 @@ server:
 
 spring:
   config:
-    import: "optional:env[.]properties"
+    import: "optional:file:env.properties"
   datasource:
     url: ${SPRING_DATASOURCE_URL}
     username: ${SPRING_DATASOURCE_USERNAME}
     password: ${SPRING_DATASOURCE_PASSWORD}
     driver-class-name: org.postgresql.Driver
 
-    jpa:
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
       hibernate:
-        ddl-auto: update
-      properties:
-        hibernate:
-          dialect: org.hibernate.dialect.PostgreSQLDialect
-      show-sql: false
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+    show-sql: false
 
   web:
     cors:
