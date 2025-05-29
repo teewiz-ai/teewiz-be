@@ -1,22 +1,25 @@
 app:
   aws:
-    region: eu-central-1             # your bucket’s region
-    bucket-name: my-tshirt-designs   # bucket created earlier
-  frontend-origin: http://localhost:3000
+    region: ${AWS_REGION}
+    bucket: ${S3_BUCKET}
+    base-url: ${SITE_BASE_URL}
 
+  frontend-origin: ${FRONTEND_ORIGIN:http://localhost:3000}
 
 server:
   servlet:
     session:
       cookie:
-        same-site: none   # allow cross-site
+        same-site: none
         secure: true
 
 spring:
+  config:
+    import: "optional:env[.]properties"
   datasource:
-    url: jdbc:postgresql://localhost:5432/tshirtlab
-    username: postgres
-    password: yourpassword
+    url: ${SPRING_DATASOURCE_URL}
+    username: ${SPRING_DATASOURCE_USERNAME}
+    password: ${SPRING_DATASOURCE_PASSWORD}
     driver-class-name: org.postgresql.Driver
 
     jpa:
@@ -44,7 +47,9 @@ spring:
           google:
             client-id: ${GOOGLE_CLIENT_ID}
             client-secret: ${GOOGLE_CLIENT_SECRET}
-            scope: openid, profile, email   # nothing else needed
+            scope: openid, profile, email
         provider:
           google:
             issuer-uri: https://accounts.google.com
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:dev}

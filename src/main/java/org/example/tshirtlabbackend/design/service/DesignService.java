@@ -12,6 +12,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -37,14 +38,14 @@ public class DesignService {
     }
 
     @Transactional
-    public Design saveDesign(User user, MultipartFile file) {
-        String key = s3StorageService.upload(file);
-        String url = s3StorageService.publicUrl(key);
-        Design d = Design.builder()
-                .owner(user)
-                .s3Key(key)
-                .url(url)
-                .build();
+    public Design saveDesign(User user, byte[] imageBytes) {
+        String key = "designs/%s.png".formatted(UUID.randomUUID());
+        String url = s3StorageService.upload(key, imageBytes);
+
+        Design d = new Design();
+        d.setOwner(user);
+        d.setS3Key(key);
+        d.setUrl(url);
         return designRepository.save(d);
     }
 
