@@ -1,97 +1,65 @@
+// src/main/java/org/example/tshirtlabbackend/llm/LLMService.java
 package org.example.tshirtlabbackend.llm;
 
-import org.springframework.lang.Nullable;
+import org.example.tshirtlabbackend.design.domain.request.ImageGenRequest;
+import org.example.tshirtlabbackend.design.domain.response.ImageGenResponse;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
+import org.springframework.web.reactive.function.client.ExchangeStrategies;
+import org.springframework.web.reactive.function.client.WebClient;
+import reactor.core.publisher.Mono;
 
-import java.util.*;
+import java.util.Base64;
 
 @Service
 public class LLMService {
 
-    public enum TaskType { TEXT_COMPLETION, IMAGE_GENERATION, IMAGE_TO_TEXT }
+    private final WebClient webClient;
 
-    /** Marker interface for requests understood by a particular executor. */
-    public sealed interface LlmRequest permits TextRequest, ImageRequest, VisionRequest { }
+    public LLMService(
+            @Value("${llm.service.base-url}") String baseUrl,
+            WebClient.Builder webClientBuilder
+    ) {
+        int maxSize = 10 * 1024 * 1024; // 10 MB
 
-    /** Marker interface for responses returned by an executor. */
-    public sealed interface LlmResponse permits ImageResponse, ResponseBase, TextResponse, VisionResponse { }
+        ExchangeStrategies strategies = ExchangeStrategies.builder()
+                .codecs(configurer -> configurer.defaultCodecs().maxInMemorySize(maxSize))
+                .build();
 
-    public record TextRequest(List<String> messages)             implements LlmRequest { }
-    public record ImageRequest(String prompt)                    implements LlmRequest { }
-    public record VisionRequest(byte[] image, @Nullable String prompt) implements LlmRequest { }
+        WebClient.Builder builder = webClientBuilder
+                .baseUrl(baseUrl)
+                .exchangeStrategies(strategies)
+                .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
 
-    public record TextResponse(String content) implements LlmResponse, ResponseBase { }
-    public record ImageResponse(byte[] imageBytes) implements LlmResponse, ResponseBase { }
-    public record VisionResponse(String description) implements LlmResponse, ResponseBase { }
-
-    public sealed interface ResponseBase extends LlmResponse permits TextResponse,
-            ImageResponse,
-            VisionResponse { }
-
-    public interface LlmExecutor<TReq extends LlmRequest,
-            TRes extends LlmResponse> {
-
-        /** Text, image-gen, or image-to-text. */
-        TaskType supportedTask();
-
-        /** Exact model name, e.g. "gpt-4o", "gpt-image-1", "llama-3-70b-instruct". */
-        String modelName();
-
-        /** Perform the call and map SDK-specific result → domain response. */
-        TRes execute(TReq request);
+        this.webClient = builder.build();
     }
 
-    private final Map<TaskType, Map<String, LlmExecutor<?, ?>>> registry = new EnumMap<>(TaskType.class);
+    /**
+     * Calls POST {baseUrl}/images/generate
+     * and returns the first image as raw bytes.
+     */
+    public byte[] generateImage(ImageGenRequest req) {
+        ImageGenResponse resp = webClient.post()
+                .uri("/images/generate")
+                .bodyValue(req)
+                .retrieve()
+                .onStatus(
+                        status -> status.is4xxClientError() || status.is5xxServerError(),
+                        clientResponse -> clientResponse.bodyToMono(String.class)
+                                .flatMap(err ->
+                                        Mono.error(new RuntimeException("LLM service error: " + err))
+                                )
+                )
+                .bodyToMono(ImageGenResponse.class)
+                .block();
 
-    public LLMService(List<LlmExecutor<?, ?>> executors) {
-        for (LlmExecutor<?, ?> exec : executors) {
-            registry
-                    .computeIfAbsent(exec.supportedTask(), k -> new HashMap<>())
-                    .put(exec.modelName(), exec);
-        }
-    }
-
-
-    /** Chat/completions.  @param model null → use default (first registered) */
-    public TextResponse chat(TextRequest request, @Nullable String model) {
-        return invoke(TaskType.TEXT_COMPLETION, model, request, TextResponse.class);
-    }
-
-    /** Image generation. */
-    public ImageResponse generateImage(ImageRequest request, @Nullable String model) {
-        return invoke(TaskType.IMAGE_GENERATION, model, request, ImageResponse.class);
-    }
-
-    /** Vision / image-to-text (OCR, caption, etc.). */
-    public VisionResponse describeImage(VisionRequest request, @Nullable String model) {
-        return invoke(TaskType.IMAGE_TO_TEXT, model, request, VisionResponse.class);
-    }
-
-    @SuppressWarnings("unchecked")
-    private <TReq extends LlmRequest,
-            TRes extends LlmResponse>
-    TRes invoke(TaskType task,
-                @Nullable String model,
-                TReq request,
-                Class<TRes> expectedType) {
-
-        var taskExecutors = registry.getOrDefault(task, Map.of());
-        if (taskExecutors.isEmpty()) {
-            throw new IllegalStateException("No executors registered for task " + task);
-        }
-        String chosenModel = model != null ? model : taskExecutors.keySet().iterator().next();
-
-        var rawExec = taskExecutors.get(chosenModel);
-        if (rawExec == null) {
-            throw new IllegalArgumentException("Model '%s' not registered for task %s"
-                    .formatted(chosenModel, task));
+        if (resp == null || resp.getImages().isEmpty()) {
+            throw new IllegalStateException("No image returned from LLM service");
         }
 
-        var result = ((LlmExecutor<TReq, ?>) rawExec).execute(request);
-        if (!expectedType.isInstance(result)) {
-            throw new IllegalStateException("Executor returned unexpected response type "
-                    + result.getClass() + " (expected " + expectedType + ")");
-        }
-        return expectedType.cast(result);
+        String b64 = resp.getImages().get(0);
+        return Base64.getDecoder().decode(b64);
     }
 }

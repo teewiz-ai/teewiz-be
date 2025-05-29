@@ -6,6 +6,10 @@ app:
 
   frontend-origin: ${FRONTEND_ORIGIN:http://localhost:3000}
 
+llm:
+  service:
+    base-url: ${LLM_SERVICE_URL:http://localhost:8000}
+
 server:
   servlet:
     session:
