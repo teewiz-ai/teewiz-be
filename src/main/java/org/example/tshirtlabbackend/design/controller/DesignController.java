@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.tshirtlabbackend.aws.S3StorageService;
 import org.example.tshirtlabbackend.design.domain.Design;
+import org.example.tshirtlabbackend.design.domain.DesignDto;
 import org.example.tshirtlabbackend.design.domain.request.GenerateDesignRequest;
 import org.example.tshirtlabbackend.design.domain.request.ImageGenRequest;
 import org.example.tshirtlabbackend.design.domain.response.GenerateDesignResponse;
@@ -11,8 +12,13 @@ import org.example.tshirtlabbackend.design.service.DesignService;
 import org.example.tshirtlabbackend.llm.LLMService;
 import org.example.tshirtlabbackend.user.domain.User;
 import org.example.tshirtlabbackend.user.repository.UserRepository;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 
 @Slf4j
@@ -27,8 +33,14 @@ public class DesignController {
     private final LLMService llmService;
 
 
-
-
+    @GetMapping
+    public ResponseEntity<List<DesignDto>> getMyDesigns(
+            OAuth2AuthenticationToken token
+    ) {
+        User user = findUser(token);
+        List<DesignDto> designDtos = designService.listDesigns(user);
+        return ResponseEntity.ok(designDtos);
+    }
 
     @PostMapping("/generate")
     public GenerateDesignResponse generate(

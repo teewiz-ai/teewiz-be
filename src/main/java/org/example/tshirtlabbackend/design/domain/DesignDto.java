@@ -1,8 +1,13 @@
 package org.example.tshirtlabbackend.design.domain;
 
 
-public record DesignDto(Long id, String url, String createdAt) {
-    public static DesignDto from(Design d) {
-        return new DesignDto(d.getId(), d.getUrl(), d.getCreatedAt().toString());
-    }
+import lombok.AllArgsConstructor;
+import lombok.Data;
+
+@Data
+@AllArgsConstructor
+public class DesignDto {
+    private Long id;
+    private String createdAt;
+    private String url;
 }
