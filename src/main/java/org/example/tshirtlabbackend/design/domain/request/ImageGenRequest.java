@@ -12,4 +12,5 @@ public class ImageGenRequest {
     private String format;
     private String background;
     private String quality;
+    private String sampleImageUrl;
 }

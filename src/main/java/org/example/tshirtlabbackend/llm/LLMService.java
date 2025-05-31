@@ -41,6 +41,7 @@ public class LLMService {
      * and returns the first image as raw bytes.
      */
     public byte[] generateImage(ImageGenRequest req) {
+        System.out.println(req.getSampleImageUrl());
         ImageGenResponse resp = webClient.post()
                 .uri("/images/generate")
                 .bodyValue(req)

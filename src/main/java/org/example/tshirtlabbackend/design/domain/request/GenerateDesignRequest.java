@@ -55,8 +55,7 @@ public class GenerateDesignRequest {
     private Integer outputCompression;
 
     /**
-     * Base64-encoded image string to use as a sample for variations
-     * or full-image edits (no mask support here).
+     * Public S3 URL of the uploaded sample image.
      */
-    private String sampleImage;
+    private String sampleImageUrl;
 }

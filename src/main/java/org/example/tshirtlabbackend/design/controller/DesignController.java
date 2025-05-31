@@ -37,8 +37,7 @@ public class DesignController {
 
         log.info("Generate request | prompt='{}', style='{}', size='{}', quality='{}', background='{}', format='{}', n={}, sampleImage={}",
                 req.getPrompt(), req.getStyle(), req.getSize(), req.getQuality(),
-                req.getBackground(), req.getFormat(), req.getN(),
-                req.getSampleImage() != null ? "[provided]" : "[none]");
+                req.getBackground(), req.getFormat(), req.getN());
 
 
         byte[] imgResponse = llmService.generateImage(toImageGenRequest(req));
@@ -68,6 +67,7 @@ public class DesignController {
                 .quality(r.getQuality())
                 .background(r.getBackground())
                 .format(r.getFormat())
+                .sampleImageUrl(r.getSampleImageUrl())
                 .build();
     }
 }
