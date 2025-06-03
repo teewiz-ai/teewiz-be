@@ -3,6 +3,8 @@ app:
     region: ${AWS_REGION}
     bucket: ${S3_BUCKET}
     base-url: ${SITE_BASE_URL}
+    access-key-id: ${AWS_ACCESS_KEY_ID}
+    secret-access-key: ${AWS_SECRET_ACCESS_KEY}
 
   frontend-origin: ${FRONTEND_ORIGIN:http://localhost:3000}
 
