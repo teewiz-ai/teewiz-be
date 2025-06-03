@@ -3,6 +3,8 @@ package org.example.tshirtlabbackend.design.domain.request;
 import lombok.Builder;
 import lombok.Data;
 
+import java.util.List;
+
 @Data
 @Builder
 public class ImageGenRequest {
@@ -12,5 +14,5 @@ public class ImageGenRequest {
     private String format;
     private String background;
     private String quality;
-    private String sampleImageUrl;
+    private List<String> sampleImageUrls;
 }

@@ -67,7 +67,7 @@ public class DesignController {
                 .quality(r.getQuality())
                 .background(r.getBackground())
                 .format(r.getFormat())
-                .sampleImageUrl(r.getSampleImageUrl())
+                .sampleImageUrls(r.getSampleImageUrls())
                 .build();
     }
 }
