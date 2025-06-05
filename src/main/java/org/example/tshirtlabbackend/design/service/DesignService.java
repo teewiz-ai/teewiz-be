@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.tshirtlabbackend.common.PaginatedResult;
 import org.example.tshirtlabbackend.config.aws.S3StorageService;
+import org.example.tshirtlabbackend.design.controller.request.ImageGenRequest;
 import org.example.tshirtlabbackend.design.data.entity.Design;
 import org.example.tshirtlabbackend.design.mapper.DesignMapper;
 import org.example.tshirtlabbackend.design.service.command.CreateDesignCommand;
@@ -39,7 +40,7 @@ public class DesignService {
     @Transactional
     public CreateDesignResult createDesign(CreateDesignCommand cmd) {
         byte[] imageBytes = llmService.generateImage(
-                org.example.tshirtlabbackend.design.domain.request.ImageGenRequest.builder()
+                ImageGenRequest.builder()
                         .prompt(cmd.getPrompt())
                         .size(cmd.getSize())
                         .quality(cmd.getQuality())

@@ -1,8 +1,8 @@
 // src/main/java/org/example/tshirtlabbackend/llm/LLMService.java
 package org.example.tshirtlabbackend.llm;
 
+import org.example.tshirtlabbackend.design.controller.request.ImageGenRequest;
 import org.example.tshirtlabbackend.design.controller.response.ImageGenResponse;
-import org.example.tshirtlabbackend.design.domain.request.ImageGenRequest;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
