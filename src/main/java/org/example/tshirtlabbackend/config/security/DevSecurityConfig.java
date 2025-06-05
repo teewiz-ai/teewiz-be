@@ -1,5 +1,5 @@
 // src/main/java/.../security/DevSecurityConfig.java
-package org.example.tshirtlabbackend.security;
+package org.example.tshirtlabbackend.config.security;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

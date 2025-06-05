@@ -1,4 +1,4 @@
-package org.example.tshirtlabbackend.design.domain.request;
+package org.example.tshirtlabbackend.design.controller.request;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -8,13 +8,14 @@ import lombok.NoArgsConstructor;
 import java.util.List;
 
 /**
- * Request payload for generating or editing a design.
+ * Request payload for generating a design.
  */
 @Data
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class GenerateDesignRequest {
+public class CreateDesignRequest {
+
     /** The text prompt for generation or edit. */
     private String prompt;
 
@@ -36,9 +37,6 @@ public class GenerateDesignRequest {
 
     /** Output format: png, jpeg, or webp. */
     private String format;
-
-    /** Compression level for JPEG/WebP (0–100). */
-    private Integer outputCompression;
 
     /** Public S3 URLs of the uploaded sample images. */
     private List<String> sampleImageUrls;

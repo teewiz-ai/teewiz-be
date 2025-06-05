@@ -1,7 +1,7 @@
 package org.example.tshirtlabbackend.images.controller;
 
 import lombok.RequiredArgsConstructor;
-import org.example.tshirtlabbackend.aws.S3StorageService;
+import org.example.tshirtlabbackend.config.aws.S3StorageService;
 import org.example.tshirtlabbackend.images.dto.PresignRequest;
 import org.example.tshirtlabbackend.images.dto.PresignResponse;
 import org.springframework.web.bind.annotation.PostMapping;

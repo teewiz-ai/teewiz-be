@@ -1,4 +1,4 @@
-package org.example.tshirtlabbackend.design.domain.response;
+package org.example.tshirtlabbackend.design.controller.response;
 
 import lombok.Data;
 

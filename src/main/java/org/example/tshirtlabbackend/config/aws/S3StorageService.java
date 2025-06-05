@@ -1,5 +1,5 @@
 // S3StorageService.java
-package org.example.tshirtlabbackend.aws;
+package org.example.tshirtlabbackend.config.aws;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;

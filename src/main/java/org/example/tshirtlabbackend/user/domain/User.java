@@ -2,7 +2,7 @@ package org.example.tshirtlabbackend.user.domain;
 
 import jakarta.persistence.*;
 import lombok.*;
-import org.example.tshirtlabbackend.design.domain.Design;
+import org.example.tshirtlabbackend.design.data.entity.Design;
 
 import java.util.ArrayList;
 import java.util.List;

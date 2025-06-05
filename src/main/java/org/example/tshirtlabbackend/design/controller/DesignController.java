@@ -2,16 +2,24 @@ package org.example.tshirtlabbackend.design.controller;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.example.tshirtlabbackend.aws.S3StorageService;
-import org.example.tshirtlabbackend.design.domain.Design;
-import org.example.tshirtlabbackend.design.domain.request.GenerateDesignRequest;
-import org.example.tshirtlabbackend.design.domain.request.ImageGenRequest;
-import org.example.tshirtlabbackend.design.domain.response.GenerateDesignResponse;
+import org.example.tshirtlabbackend.common.PaginatedResponse;
+import org.example.tshirtlabbackend.common.PaginatedResult;
+import org.example.tshirtlabbackend.design.controller.request.CreateDesignRequest;
+import org.example.tshirtlabbackend.design.controller.request.SearchDesignRequest;
+import org.example.tshirtlabbackend.design.controller.response.DesignResponse;
+import org.example.tshirtlabbackend.design.mapper.DesignMapper;
 import org.example.tshirtlabbackend.design.service.DesignService;
-import org.example.tshirtlabbackend.llm.LLMService;
+import org.example.tshirtlabbackend.design.service.command.CreateDesignCommand;
+import org.example.tshirtlabbackend.design.service.command.SearchDesignCommand;
+import org.example.tshirtlabbackend.design.service.result.CreateDesignResult;
+import org.example.tshirtlabbackend.design.service.result.DesignResult;
 import org.example.tshirtlabbackend.user.domain.User;
 import org.example.tshirtlabbackend.user.repository.UserRepository;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 
@@ -23,51 +31,65 @@ public class DesignController {
 
     private final DesignService designService;
     private final UserRepository userRepository;
-    private final S3StorageService s3StorageService;
-    private final LLMService llmService;
 
-
-
-
-
-    @PostMapping("/generate")
-    public GenerateDesignResponse generate(
-            @RequestBody GenerateDesignRequest req,
-            OAuth2AuthenticationToken token) {
-
-        log.info("Generate request | prompt='{}', style='{}', size='{}', quality='{}', background='{}', format='{}', n={}, sampleImage={}",
-                req.getPrompt(), req.getStyle(), req.getSize(), req.getQuality(),
-                req.getBackground(), req.getFormat(), req.getN());
-
-
-        byte[] imgResponse = llmService.generateImage(toImageGenRequest(req));
-
-        User user = findUser(token);
-        Design design = designService.saveDesign(user, imgResponse);
-
-        log.info("Design stored | user={}, key={}, url={}",
-                user.getId(), design.getS3Key(), design.getUrl());
-
-        return new GenerateDesignResponse(design.getS3Key(), design.getUrl());
+    private User currentUser(Authentication auth) {
+        if (auth instanceof OAuth2AuthenticationToken oauthToken) {
+            String googleSub = oauthToken.getPrincipal().getAttribute("sub");
+            return userRepository.findByGoogleId(googleSub)
+                    .orElseThrow(() -> new IllegalStateException("User not found for Google ID: " + googleSub));
+        }
+        if (auth instanceof UsernamePasswordAuthenticationToken) {
+            return (User) ((UsernamePasswordAuthenticationToken) auth).getPrincipal();
+        }
+        throw new IllegalStateException("Unsupported authentication type: " + auth.getClass().getSimpleName());
     }
 
+    @PostMapping
+    public ResponseEntity<DesignResponse> createDesign(
+            @RequestBody @Validated CreateDesignRequest req,
+            Authentication auth
+    ) {
 
+        User user = currentUser(auth);
 
-    private User findUser(OAuth2AuthenticationToken token) {
-        String googleId = token.getPrincipal().getAttribute("sub");
-        return userRepository.findByGoogleId(googleId)
-                .orElseThrow();
+        CreateDesignCommand cmd = DesignMapper.INSTANCE.toCommand(req, user);
+
+        CreateDesignResult result = designService.createDesign(cmd);
+        return ResponseEntity.ok(DesignMapper.INSTANCE.toDesignResponse(result));
     }
 
-    private ImageGenRequest toImageGenRequest(GenerateDesignRequest r) {
-        return ImageGenRequest.builder()
-                .prompt(r.getPrompt())
-                .n(r.getN())
-                .size(r.getSize())
-                .quality(r.getQuality())
-                .background(r.getBackground())
-                .format(r.getFormat())
-                .sampleImageUrls(r.getSampleImageUrls())
-                .build();
+    @GetMapping("/{id}")
+    public ResponseEntity<DesignResponse> getDesignById(
+            @PathVariable("id") Long id,
+            Authentication auth
+    ) {
+        User user = currentUser(auth);
+        DesignResult result = designService.getDesign(id, user);
+        return ResponseEntity.ok(DesignMapper.INSTANCE.toResponse(result));
+    }
+
+    @GetMapping
+    public ResponseEntity<PaginatedResponse<DesignResponse>> listDesigns(
+            @Validated SearchDesignRequest req,
+            Authentication auth
+    ) {
+
+        User user = currentUser(auth);
+        SearchDesignCommand cmd = DesignMapper.INSTANCE.toCommand(req, user);
+
+        PaginatedResult<DesignResult> designs = designService.searchDesigns(cmd);
+
+        return ResponseEntity.ok(DesignMapper.INSTANCE.toResponse(designs));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteDesign(
+            @PathVariable("id") Long id,
+            Authentication auth) {
+
+        User user = currentUser(auth);
+        designService.deleteDesign(id, user);
+
+        return ResponseEntity.noContent().build();
     }
 }
