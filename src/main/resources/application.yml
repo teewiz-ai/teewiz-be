@@ -7,6 +7,7 @@ app:
     secret-access-key: ${AWS_SECRET_ACCESS_KEY}
 
   frontend-origin: ${FRONTEND_ORIGIN:http://localhost:3000}
+  base-url: ${BASE_URL:http://localhost:8080}
 
 llm:
   service:
@@ -16,8 +17,9 @@ server:
   servlet:
     session:
       cookie:
-        same-site: none
-        secure: true
+        same-site: lax
+        secure: false
+        http-only: true
 
 spring:
   config:
@@ -54,6 +56,7 @@ spring:
             client-id: ${GOOGLE_CLIENT_ID}
             client-secret: ${GOOGLE_CLIENT_SECRET}
             scope: openid, profile, email
+            redirect-uri: "${app.base-url}/login/oauth2/code/google"
         provider:
           google:
             issuer-uri: https://accounts.google.com

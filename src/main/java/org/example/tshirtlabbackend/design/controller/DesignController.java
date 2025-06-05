@@ -35,8 +35,8 @@ public class DesignController {
     private User currentUser(Authentication auth) {
         if (auth instanceof OAuth2AuthenticationToken oauthToken) {
             String googleSub = oauthToken.getPrincipal().getAttribute("sub");
-            return userRepository.findByGoogleId(googleSub)
-                    .orElseThrow(() -> new IllegalStateException("User not found for Google ID: " + googleSub));
+            return userRepository.findByGoogleSub(googleSub)
+                    .orElseThrow(() -> new IllegalStateException("User not found for Google Sub: " + googleSub));
         }
         if (auth instanceof UsernamePasswordAuthenticationToken) {
             return (User) ((UsernamePasswordAuthenticationToken) auth).getPrincipal();
@@ -53,7 +53,6 @@ public class DesignController {
         User user = currentUser(auth);
 
         CreateDesignCommand cmd = DesignMapper.INSTANCE.toCommand(req, user);
-
         CreateDesignResult result = designService.createDesign(cmd);
         return ResponseEntity.ok(DesignMapper.INSTANCE.toDesignResponse(result));
     }

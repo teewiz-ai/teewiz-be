@@ -16,9 +16,9 @@ public class DevInitializer implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
-        userRepository.findByGoogleId("dev-google-id").orElseGet(() -> {
+        userRepository.findByGoogleSub("dev-google-sub").orElseGet(() -> {
             User user = new User();
-            user.setGoogleId("dev-google-id");
+            user.setGoogleSub("dev-google-sub");
             user.setEmail("dev@example.com");
             user.setName("Dev User");
             return userRepository.save(user);

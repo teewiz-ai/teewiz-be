@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.example.tshirtlabbackend.design.data.entity.Design;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -24,8 +25,8 @@ public class User {
     private Long id;
 
     /** Google account subject (sub) */
-    @Column(name = "google_id", nullable = false, updatable = false)
-    private String googleId;
+    @Column(name = "google_sub", nullable = false, updatable = false)
+    private String googleSub;
 
     @Column(nullable = false)
     private String email;
@@ -33,6 +34,11 @@ public class User {
     private String name;
 
     private String pictureUrl;
+
+    @Builder.Default
+    private Instant createdAt = Instant.now();
+
+    private Instant lastLoginAt;
 
     /**
      * User → Designs: 1‑to‑many.
